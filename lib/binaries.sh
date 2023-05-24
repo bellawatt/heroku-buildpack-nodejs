@@ -24,7 +24,7 @@ resolve() {
 install_yarn() {
   local dir="$1"
   local version=${2:-1.22.x}
-  local number url code resolve_result
+  local number url code resolve_result timeout
 
   if [[ -n "$YARN_BINARY_URL" ]]; then
     url="$YARN_BINARY_URL"
@@ -42,7 +42,13 @@ install_yarn() {
     echo "Downloading and installing yarn ($number)"
   fi
 
-  code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 --retry-connrefused --connect-timeout 5 -o /tmp/yarn.tar.gz --write-out "%{http_code}")
+  if [[ -n "$CURL_CONNECT_TIMEOUT" ]]; then
+    timeout="$CURL_CONNECT_TIMEOUT"
+  else
+    timeout=5
+  fi
+
+  code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 --retry-connrefused --connect-timeout $timeout -o /tmp/yarn.tar.gz --write-out "%{http_code}")
 
   if [ "$code" != "200" ]; then
     echo "Unable to download yarn: $code" && false
@@ -69,7 +75,7 @@ install_yarn() {
 install_nodejs() {
   local version="${1:-}"
   local dir="${2:?}"
-  local code resolve_result
+  local code resolve_result timeout
 
   if [[ -z "$version" ]]; then
       version="18.x"
@@ -91,7 +97,13 @@ install_nodejs() {
     echo "Downloading and installing node $number..."
   fi
 
-  code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 --retry-connrefused --connect-timeout 5 -o /tmp/node.tar.gz --write-out "%{http_code}")
+  if [[ -n "$CURL_CONNECT_TIMEOUT" ]]; then
+    timeout="$CURL_CONNECT_TIMEOUT"
+  else
+    timeout=5
+  fi
+
+  code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 --retry-connrefused --connect-timeout $timeout -o /tmp/node.tar.gz --write-out "%{http_code}")
 
   if [ "$code" != "200" ]; then
     echo "Unable to download node: $code" && false
